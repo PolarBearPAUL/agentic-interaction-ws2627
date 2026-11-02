@@ -1,3 +1,9 @@
+# Ignoring Log files and JSONL files
+logs/
+*.jsonl
+.DS_Store 
+ToDo.txt
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
