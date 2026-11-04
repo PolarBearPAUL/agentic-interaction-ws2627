@@ -11,21 +11,22 @@ class RunLog:
         self.run_id = uuid4().hex
         self.model = None
         folder = root / "logs"
-        folder.mkdir(exist_ok=True)
+        folder.mkdir(exist_ok=True) # create folder if it doesn't exist
         self.path = folder / f"{self.run_id}.jsonl"
-        self.path.touch(exist_ok=False)
+        self.path.touch(exist_ok=False) # create file, fail if it already exists
 
     def write(self, event, *, ok=True, duration_ms=0, tool=None, args=None):
         # Payload names (task/result/answer/message) are provisional until Moodle is checked.
+        # * alle folgenden Parameter müssen beim Aufruf mit Namen angegeben
         record = {
             "ts": datetime.now(timezone.utc).isoformat(),
             "run_id": self.run_id,
-            "event": event,
-            "tool": tool,
+            "event": event, # tool_call/tool_result/error/answer
+            "tool": tool, 
             "args": args,
             "ok": ok,
             "model": self.model,
             "duration_ms": duration_ms,
         }
-        with self.path.open("a", encoding="utf-8") as file:
+        with self.path.open("a", encoding="utf-8") as file: 
             file.write(json.dumps(record, ensure_ascii=False) + "\n")
