@@ -15,9 +15,11 @@
 
 
 **Rule:** Der Assistent darf zwar Informationen lesen, die für meine Anfrage relevant sind, und eigenständig private Notizen erstellen, muss mich jedoch um Erlaubnis fragen, bevor er meinen Kalender ändert, Tickets bucht, andere Personen kontaktiert oder Notizen löscht.
-**Tow observations from role play:** 
+
+**Two observations from role play:** 
 1. Rückfragen vor einer Buchung oder Nachricht waren hilfreich: Wie vor der Buchung einer Zugverbindung, dass gab die Gelegenheit, einen größeren Zeitpuffer zu verlangen und den höheren Preis ausdrücklich zu bestätigen. Beim Nachrichten versenden war es gut, dass der Agent nochmal nachgefragt hat, ob die Nachricht so formuliert und an wenn genau abgeschickt werden soll.  
 2.  Nachfragen die unnötig sind: Wie "…check whether there’s anything you might want to delete?" die Anforderung war nur die Notes zusammenzufassen und nix zu löschen.
+   
 ## Card A
 > 	*Delegating Person:* “What's on today?”
 > 	
