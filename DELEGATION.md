@@ -75,8 +75,8 @@
 >	***Agent***: I’ll post ‘Hi everyone, I’ll join today’s stand-up online’ in the **Stand Up** channel. Should I send it?
 >
 > *Delegating Person:* "Yes, please."
-> 
-	***Agent:*** I’m calling `send_message("Stand Up", "Hi everyone, I’ll join today’s stand-up online.")` …… I posted the message in the Stand Up channel.
+>
+> ***Agent:*** I’m calling `send_message("Stand Up", "Hi everyone, I’ll join today’s stand-up online.")` …… I posted the message in the Stand Up channel.
 
 **Note:** Gut dass Agent nochmals nachgefragt hat, ob die Nachricht so formuleirt und an wenn genau abgeschickt werden soll. 
 ## Card F
