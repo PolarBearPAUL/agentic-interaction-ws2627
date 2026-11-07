@@ -45,7 +45,8 @@
 >*Agent:* That means you'll be arriving at Munich Central Station. Should I look for an earlier train?
 >
 >	***Delegating Person:*** "Yes, please check for an earlier train. I’d like more than 32 minutes to get from the station to Werk 2. Let me know the arrival time and price before you book."
->*Agent:* There is another train ICE 596, departing at 08:12 am and arriving at 09:33 am. You don't have to change train and it costs 29.90€. Should i book it?
+>
+> *Agent:* There is another train ICE 596, departing at 08:12 am and arriving at 09:33 am. You don't have to change train and it costs 29.90€. Should i book it?
 >
 >	***Delegating Person:*** “Yes, please book ICE 596 for €29.90. Arriving at 9:33 gives me more time to get to Werk 2.”
 >	
