@@ -32,7 +32,7 @@ def answer_question(client, config, task, log):
         model=config.model,
         messages=messages,
         tools=[TOOL], # tools argument is a list of tools, each tool is a dict with name, description, parameters
-        tool_choice="required",
+        tool_choice="auto",
     )
     # Bsp. Modell response als JSON-String, der die Tool-Aufrufe enthält
     function_call_response = first_response.choices[0].message 
