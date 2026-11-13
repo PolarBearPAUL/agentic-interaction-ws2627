@@ -29,33 +29,30 @@ TOOL = {
     },
 }
 
-
 def get_calendar_day(base_url: str, day: str) -> dict:
-    # model's arguments not automatically trusted
-    # ob Datum im richtigen Format, ob es String ist und in ISO-Format YYYY-MM-DD konvertieren kann
-    if not isinstance(day, str) or date.fromisoformat(day).isoformat() != day:
-        raise ValueError("Das Datum muss YYYY-MM-DD entsprechen.")
+    """Get the mock calendar appointments for one day."""
+    try:
+        valid = date.fromisoformat(day).isoformat() == day
+    except (ValueError, TypeError):
+        valid = False
+    if not valid:
+        return {"ok": False, "date": day}
     
-    url = f"{base_url.rstrip('/')}/calendar/{day}.json"
+    url = f"{base_url}/calendar/{day}.json"
     
     try:
-        # A timeout prevents waiting forever. No model API key is sent here.
-        with urlopen(url, timeout=15) as response:
+        with urlopen(url, timeout=15) as response: # Timeout von 15 Sekunden für die HTTP-Anfrage
             data = json.load(response)
+    except HTTPError as e:
+        if e.code == 404:
+            return {"ok": True, "available": False, "date": day, "message": "Keine Termine für diesen Tag verfügbar."}  # 404 Not Found bedeutet, dass keine Termine für diesen Tag vorhanden sind
+        else:
+            return {"ok": False, "available": False, "date": day, "message": f"HTTP-Fehler: {e.code} {e.reason}"}
     
-    except HTTPError as error:
-        error.close() # HTTPError ist Kontextmanager, der Verbindung offen hält, bis er geschlossen wird.
-        if error.code == 404:
-            return {"ok": True, "available": False, "date": day,
-                    "message": "Keine Daten für dieses Datum verfügbar (HTTP 404)."}
-        return {"ok": False, "date": day,
-                "message": f"Kalenderdienst meldet HTTP {error.code}."} 
-    
-    except (OSError, ValueError):
-        return { "ok": False, "date": day, "message": "Kalenderdaten konnten nicht geladen oder verarbeitet werden."}
-
+    except (OSError, ValueError) as e: # OSError: Netzwerkfehler, ValueError: JSON-Decode-Fehler
+        return {"ok": False, "available": False, "date": day, "message": "Fehler beim Abrufen der Kalenderdaten."}
+     
     if not isinstance(data, dict) or not isinstance(data.get("events"), list):
-        return {"ok": False, "date": day,
-                "message": "Unerwartetes Kalenderformat: events muss eine Liste sein."}
-
-    return {"ok": True, "available": True, "date": day, "data": data}
+        return {"ok": False, "available": False, "date": day, "message": "Ungültige Datenstruktur."}
+    
+    return {"ok": True, "available": True, "date": day, "data": data, "message": "Daten erfolgreich abgerufen."}
