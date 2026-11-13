@@ -4,7 +4,7 @@ import json
 import sys
 from time import perf_counter
 
-from openai import OpenAI
+from openai import OpenAI, OpenAIError
 
 from .calendar_tool import TOOL, get_calendar_day
 from .config import ROOT, load_config
@@ -105,7 +105,7 @@ def main() -> int:
                     timeout=30, max_retries=0) as client:
             answer, ok = answer_question(client, config, task, log)
         
-    except (ValueError, RuntimeError) as error:
+    except (ValueError, RuntimeError, OpenAIError) as error:
         print(error, file=sys.stderr)
         log.write("error", ok=False, duration_ms=round((perf_counter() - started) * 1000, 3))
         return 1
