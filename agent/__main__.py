@@ -6,7 +6,9 @@ from time import perf_counter
 
 from openai import OpenAI, OpenAIError
 
-from .calendar_tool import TOOL, get_calendar_day
+from .calendar_tool import CALENDAR_TOOL, get_calendar_day
+from .weather_tool import get_weather, WEATHER_TOOL
+from .train_tool import get_train_info, TRAIN_TOOL
 from .config import ROOT, load_config
 from .run_log import RunLog
 
@@ -36,7 +38,7 @@ def answer_question(client, config, task, log):
         response = client.chat.completions.create(
             model=config.model,
             messages=messages,
-            tools=[TOOL], 
+            tools=[CALENDAR_TOOL, WEATHER_TOOL, TRAIN_TOOL], 
             tool_choice="auto", # Tool oder antwort
         )
             

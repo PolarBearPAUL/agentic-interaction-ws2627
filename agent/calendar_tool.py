@@ -6,7 +6,7 @@ from urllib.error import HTTPError
 from urllib.request import urlopen
 
 
-TOOL = {
+CALENDAR_TOOL = {
     "type": "function",
     "function": {
         "name": "get_calendar_day",
