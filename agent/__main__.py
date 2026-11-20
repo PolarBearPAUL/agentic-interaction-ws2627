@@ -66,7 +66,7 @@ def answer_question(client, config, task, log):
                 
             log.write("tool_call", tool=name, args=arguments)  
             
-            if name != TOOL["function"]["name"]:
+            if name != CALENDAR_TOOL["function"]["name"]:
                 # Fehler wird Modell als Ergebnis gemeldet
                 result = {"ok": False, "message": f"Unbekanntes Tool: {name}"} 
             else:
