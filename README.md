@@ -140,6 +140,14 @@ standard error. A successful run exits with code `0`.
 - **Log:** Every log line carries the field `condition`. In `preview` the events
   `approval_request` and then `approval_granted` or `approval_denied` are added.
 
+## Approval dialog and the Amershi guidelines
+
+The approval dialog violates "Make clear why the system did what it did", because it
+shows what will be created but not why the agent chose this date, time or title.
+It also violates "Support efficient correction", because the user can only answer yes
+or no and cannot change the planned values, so fixing a wrong time means denying and
+asking again.
+
 ## Mock data and tools
 
 The course provides fictional service data through HTTP endpoints:
