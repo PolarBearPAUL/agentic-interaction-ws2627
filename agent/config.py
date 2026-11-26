@@ -15,11 +15,18 @@ class Config:
     model: str
     api_key: str
     data_base_url: str
+    condition: str
+    auto_approve: bool
 
 def load_config() -> Config:
     """Load settings from .env file and environment variables."""
     load_dotenv(ROOT / ".env", override=False) # Load environment variables from .env file in the project root
    
+    condition = os.environ.get("CONDITION", "").strip().lower()
+    if condition not in {"preview", "direct"}: 
+        raise ValueError("CONDITION must be 'preview' or 'direct'")
+    auto_approve = (os.environ.get("AUTO_APPROVE") == "1")
+       
     names = ["OPENAI_BASE_URL", "MODEL", "OPENAI_API_KEY", "DATA_BASE_URL"]
     missing = [n for n in names if not os.environ.get(n, "").strip()] # Check for missing environment variables
     if missing:
@@ -30,4 +37,6 @@ def load_config() -> Config:
         model=os.environ["MODEL"].strip(),
         api_key=os.environ["OPENAI_API_KEY"].strip(),
         data_base_url=os.environ["DATA_BASE_URL"].strip().rstrip("/"),  # Remove trailing slash if present
+        condition=condition,
+        auto_approve=auto_approve,
     )

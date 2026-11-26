@@ -6,14 +6,16 @@ from time import perf_counter
 from datetime import date
 from openai import OpenAI, OpenAIError
 
-from .calendar_tool import CALENDAR_TOOL, get_calendar_day
-from .weather_tool import get_weather, WEATHER_TOOL
-from .train_tool import get_train_info, TRAIN_TOOL
+from .tools.calendar_tool import get_calendar_day, CALENDAR_TOOL
+from .tools.weather_tool import get_weather, WEATHER_TOOL
+from .tools.train_tool import get_train_info, TRAIN_TOOL
+from .tools.appointment_tool import APPOINTMENT_TOOL, create_appointment
+from .approval import IRREVERSIBLE_TOOLS, ask_approval
 from .config import ROOT, load_config
 from .run_log import RunLog
 from .prompts import build_system_prompt
 
-MAX_STEPS = 8  # maximale Anzahl der Tool-Aufrufe, um Endlosschleifen zu vermeiden
+MAX_STEPS = 8  # Maximum number of tool calls to avoid infinite loops
 
 def answer_question(client, config, task, log):
     messages = [
@@ -22,14 +24,14 @@ def answer_question(client, config, task, log):
     ]
     all_ok = True
     
-    # äußere schleife, um mehrere Tool-Aufrufe zu ermöglichen, jede runde = ein Tool-Aufruf
+    # Outer loop to allow multiple tool calls, each loop = one tool call
     for step in range(MAX_STEPS): 
     
         response = client.chat.completions.create(
             model=config.model,
             messages=messages,
-            tools=[CALENDAR_TOOL, WEATHER_TOOL, TRAIN_TOOL], 
-            tool_choice="auto", # Tool oder antwort
+            tools=[CALENDAR_TOOL, WEATHER_TOOL, TRAIN_TOOL, APPOINTMENT_TOOL], 
+            tool_choice="auto", # Tool or answer
         )
             
         # Modellantwort holen und an Messages hängen
@@ -58,26 +60,44 @@ def answer_question(client, config, task, log):
             log.write("tool_call", tool=name, args=arguments)  
             
             args = arguments or {}
-            if name == CALENDAR_TOOL["function"]["name"]:
+            
+            approved = True 
+            if name in IRREVERSIBLE_TOOLS and config.condition == "preview":
+                log.write("approval_request", tool=name, args=arguments)
+                approved = ask_approval(name, args, config.auto_approve)
+                log.write("approval_granted" if approved else "approval_denied",
+                        tool=name, args=arguments)
+                
+            if not approved: # if approved=false
+                result = {"ok": True, "approved": False,
+                            "message": "Der Nutzer hat nicht genehmigt. Es wurde nichts angelegt."}
+            elif name == CALENDAR_TOOL["function"]["name"]:
                 result = get_calendar_day(config.data_base_url, args.get("date"))
             elif name == TRAIN_TOOL["function"]["name"]:
                 result = get_train_info(config.data_base_url, args.get("date"), args.get("from"),args.get("to"))
             elif name == WEATHER_TOOL["function"]["name"]:
                 result = get_weather(config.data_base_url, args.get("date"), args.get("city"))
+            elif name == APPOINTMENT_TOOL["function"]["name"]:
+                result = create_appointment(ROOT, args.get("date"), args.get("start"), args.get("end"),
+                                            args.get("title"), args.get("id"), args.get("all_day"),
+                                            args.get("location"))   
+                
             else: result = {"ok": False, "message": f"Unbekanntes Tool: {name}"}    
+            
+            if name in IRREVERSIBLE_TOOLS and approved:
+                print(f"Bericht: {name} -> {result.get('message')}", file=sys.stderr)
                  
             elapsed = round((perf_counter() - started) * 1000, 3)
-            log.write("tool_result", ok=result["ok"], tool=name, args=arguments, duration_ms=elapsed)    # NACH dem Ausführen
+            log.write("tool_result", ok=result["ok"], tool=name, args=arguments, duration_ms=elapsed)    # AFTER execution
 
             all_ok = all_ok and result["ok"]
             messages.append({
                 "role": "tool",
                 "tool_call_id": call.id,
-                "content": json.dumps(result, ensure_ascii=False), 
+                "content": json.dumps(result, ensure_ascii=False), # result of tool passed to model
             })
         
-    raise RuntimeError(f"Maximale Anzahl von {MAX_STEPS} Tool-Aufrufen erreicht. Mögliche Endlosschleife.") # wird abgefangen in main 
-
+    raise RuntimeError(f"Maximale Anzahl von {MAX_STEPS} Tool-Aufrufen erreicht. Mögliche Endlosschleife.") # is catched in main
 
 def main() -> int:
     started = perf_counter()
@@ -94,9 +114,10 @@ def main() -> int:
     try:
         config = load_config()
         log.model = config.model 
+        log.condition = config.condition
         log.write("user_task")
         
-        # API Client erstellen, mit 'with' wird Client automatisch geschlossen, wenn Block verlassen wird
+        # Create an API client; using 'with' will automatically close the client when the block is exited.
         with OpenAI(base_url=config.base_url, api_key=config.api_key,
                     timeout=30, max_retries=0) as client:
             answer, ok = answer_question(client, config, task, log)

@@ -1,5 +1,6 @@
 # Ignoring Log files and JSONL files
 logs/
+var/
 *.jsonl
 .DS_Store 
 ToDo.txt

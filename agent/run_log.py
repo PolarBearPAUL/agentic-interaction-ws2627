@@ -7,11 +7,13 @@ from uuid import uuid4
 
 class RunLog:
     def __init__(self, root: Path):
-            self.run_id = uuid4().hex   # eine ID pro Lauf, steht in jeder Zeile
-            self.model = None           # wird gesetzt, sobald die Config geladen ist
+            self.run_id = uuid4().hex   # One ID per run, is in each line
+            self.model = None           # will be set as soon as the config is loaded
             folder = root / "logs"
-            folder.mkdir(exist_ok=True)  # Ordner anlegen, falls er fehlt
-            self.path = folder / f"{self.run_id}.jsonl"  # eine eigene Datei pro Lauf
+            folder.mkdir(exist_ok=True)  # Create a folder if it's missing.
+            self.path = folder / f"{self.run_id}.jsonl"  # one separate file per run
+            self.condition = None
+            
 
 
     def write(self, event, *, ok=True, tool=None, args=None, duration_ms=0):
@@ -24,6 +26,7 @@ class RunLog:
                 "ok": ok,
                 "model": self.model,
                 "duration_ms": duration_ms,
+                "condition": self.condition
             }
         with self.path.open("a", encoding="utf-8") as file:
                 file.write(json.dumps(record, ensure_ascii=False) + "\n")
