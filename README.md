@@ -96,20 +96,49 @@ DATA_BASE_URL=your_data_base_url (e.g. https://jhbelz.github.io/agentic-interact
 Then run the repository with
     
 ```bash
-python -m agent "Your task"
+CONDITION=[direct/preview] python -m agent "Your task."
 ```
 
 Run it from the repository root with the virtual environment active.
 
 ## Usage
 
-Initial calendar example, once implemented:
+The environment variable `CONDITION` is required. Without it (or with any value other
+than `preview` or `direct`) the agent stops with an error message and exit code 1.
+It can be set on the command line or in `.env`.
 
 ```bash
-python -m agent "Was steht am 29.10.2026 im Kalender?"
+CONDITION=preview python -m agent "Block one hour of buffer for me on 29 Oct 2026 at 17:00."
+CONDITION=direct  python -m agent "Block one hour of buffer for me on 29 Oct 2026 at 17:00."
 ```
 
-A successful calendar run prints the answer to standard output and exits with code `0`. Diagnostics should use standard error. Additional commands and any interaction-mode selection will be documented when implemented; no unimplemented command-line flags are specified here.
+Read-only questions work in both conditions, for example:
+
+```bash
+CONDITION=direct python -m agent "How do I get to Munich on 29 Oct 2026, and do I need an umbrella?"
+```
+
+The answer is printed to standard output. Plan, approval question and report go to
+standard error. A successful run exits with code `0`.
+
+## Interaction conditions
+
+| Condition | Behavior |
+| --- | --- |
+| `preview` | Before every irreversible action the agent shows the plan on stderr and asks `Genehmigen? [j/N]`, one action at a time. Only a clear yes (`j`, `ja`, `y`, `yes`) executes it. |
+| `direct` | The agent executes the action without asking and reports on stderr afterwards. |
+
+- **Denial:** Any other answer, including no input, counts as "not approved". The model
+  receives this as the tool result and keeps planning; nothing is written and the run
+  ends normally.
+- **`AUTO_APPROVE=1`** approves in `preview` without asking (the plan is still shown).
+- **Irreversible tools** are defined in one place, `IRREVERSIBLE_TOOLS` in
+  `agent/approval.py`. Read-only tools never trigger the approval step.
+- **Same system prompt, tools and model:** The condition is not part of the system
+  prompt, so the model never learns which condition it runs in. Only the approval step
+  differs.
+- **Log:** Every log line carries the field `condition`. In `preview` the events
+  `approval_request` and then `approval_granted` or `approval_denied` are added.
 
 ## Mock data and tools
 
@@ -119,7 +148,7 @@ The course provides fictional service data through HTTP endpoints:
 
 The initial dataset covers **26 October through 8 November 2026**. Tools should fetch data rather than copy the hosted dataset into this repository.
 
-For the initial calendar tool:
+For example the initial calendar tool:
 
 ```text
 GET {DATA_BASE_URL}/calendar/{YYYY-MM-DD}.json
@@ -135,14 +164,19 @@ agentic-interaction-ws2627/
 ├── requirements.txt
 ├── .gitignore
 └── agent/
-    └── __main__.py
+    ├── __main__.py       # agent loop, tool dispatch, entry point
+    ├── approval.py       # irreversible tools and approval dialog
+    ├── config.py         # settings from environment / .env
+    ├── prompts.py        # system prompt (identical in both conditions)
+    ├── run_log.py        # JSONL run log
+    └── tools/
+        ├── calendar_tool.py
+        ├── weather_tool.py
+        ├── train_tool.py
+        └── appointment_tool.py
 ```
 
-Local files and generated folders may include `.env`, `.venv/`, and `logs/`; they are not tracked.
-
-Each invocation must create its own JSONL log file inside the repository directory `logs/`. JSONL stores one complete JSON object per line. All records belonging to one run share a run identifier.
-
-Logs provide a trace of the application's execution. They are stored locally and are **not tracked by Git** under the initial exercise requirements.
+Local files and generated folders may include `.env`, `.venv/`, `logs/` and `var/`; they are not tracked.
 
 ## Licenses
 
