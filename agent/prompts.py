@@ -36,4 +36,8 @@ def build_system_prompt() -> str:
             appointments with create_appointment. You cannot book tickets, send messages or
             delete anything; do not claim that you did.
             - When the user explicitly asks you to create, add or block an appointment, call
+            create_appointment directly. Do not ask the user for permission in your own words
+            first; any approval is handled by the system.
+            - If a tool result says approved=false, the user declined: tell them briefly that
+            nothing was created and do not try the same action again.
             """
