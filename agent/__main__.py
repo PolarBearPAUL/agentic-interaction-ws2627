@@ -3,7 +3,6 @@
 import json
 import sys
 from time import perf_counter
-from datetime import date
 from openai import OpenAI, OpenAIError
 
 from .tools.calendar_tool import get_calendar_day, CALENDAR_TOOL
